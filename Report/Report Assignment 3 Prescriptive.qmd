@@ -1,0 +1,138 @@
+---
+title: "Prescriptive Assignment 3 Report"
+author: "Rick de Rijk, Tycho van Rooij, Stefan Vonk & Garoe"
+subtitle: "Prediction & Predictive coming together"
+format:
+  pdf:
+    include-in-header:
+      text: |
+        \usepackage{enumitem}
+        \setlist[itemize]{itemsep=2pt, topsep=2pt, parsep=0pt, partopsep=0pt}
+        \setlist[enumerate]{itemsep=2pt, topsep=2pt, parsep=0pt, partopsep=0pt}
+        \usepackage{setspace}
+        \setstretch{0.96}
+        \usepackage{parskip}
+        \setlength{\parskip}{0.3em}
+        \setlength{\parindent}{0pt}
+geometry:
+      - margin=2cm
+editor: visual
+toc: true
+lof: true
+number-sections: true
+---
+
+\newpage
+
+# Introduction
+
+-   Brief description of the maintenance scheduling problem\
+-   Explanation of Remaining Useful Lifetime (RUL)\
+-   Overview of the two tasks: Prediction and Optimization\
+-   Structure of the report
+
+# Prediction Task
+
+## Data Analysis and Feature Engineering
+
+-   Description of dataset 1\
+-   Explanation of how RUL is constructed from the data\
+-   Exploratory data analysis\
+-   Feature engineering steps\
+-   Final feature selection
+
+## Model Development
+
+-   Model choice: XGBoost\
+-   Data splitting strategy\
+-   Hyperparameter choices\
+-   Validation approach\
+-   Evaluation metric and justification
+
+## Prediction Results
+
+-   Predicted RUL values for dataset 2\
+-   Rounding to integer values\
+-   Summary of predictions
+
+## Comparison with Consultancy Predictions
+
+-   Description of consultancy dataset\
+-   Comparison method\
+-   Results of comparison\
+-   Interpretation and discussion
+
+# Optimization Task
+
+## Problem Formulation
+
+-   Description of maintenance scheduling problem\
+-   Constraints\
+-   Objective: minimize penalty costs
+
+## Genetic Algorithm Design
+
+### Representation
+
+-   Description of an individual
+
+### Selection Strategy
+
+-   Method used
+
+### Crossover
+
+-   Description of crossover method
+
+### Mutation
+
+-   Description of mutation method or justification
+
+### Feasibility Handling
+
+-   How infeasible solutions are handled
+
+### Hyperparameters
+
+-   Population size\
+-   Crossover probability\
+-   Mutation probability\
+-   Other design choices
+
+## Optimization Results
+
+-   Best solution found\
+-   Description of maintenance schedule\
+-   Total penalty cost
+
+## Performance Analysis
+
+-   Description of 30 runs experiment\
+-   Average-best-fitness plot\
+-   Interpretation of results
+
+## Comparison with Consultancy RUL
+
+-   Results using consultancy predictions\
+-   Comparison with own predictions\
+-   Explanation of differences
+
+# Discussion
+
+-   Key insights\
+-   Strengths of the approach\
+-   Limitations
+
+# Conclusion
+
+-   Summary of findings\
+-   Final remarks
+
+# Appendix
+
+-   Additional figures\
+-   Extra explanations
+
+# References
+
+-   Sources used
