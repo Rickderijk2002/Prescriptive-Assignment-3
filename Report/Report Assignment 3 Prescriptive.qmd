@@ -53,7 +53,7 @@ Applied row-wise using a grouped transform, this produces RUL values ranging fro
 **Data splitting.** The 100 training engines were split into 80 training engines and 20 held-out test engines (80/20). The split is performed at the engine level rather than the row level to prevent data leakage: rows from the same engine are temporally correlated, so a row-level split would allow the model to observe earlier cycles of an engine during training and later cycles of the same engine at test time. The 20 test engines were never seen during training and constitute a genuine out-of-sample evaluation. The model was configured as follows:
 
 | Hyperparameter | Value | Justification |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `n_estimators` | 400 | Sufficient rounds to converge at the chosen learning rate |
 | `max_depth` | 4 | Shallow trees reduce overfitting on a \~16,000-row training set |
 | `learning_rate` | 0.05 | Conservative step size paired with 400 estimators |
@@ -175,4 +175,4 @@ The systematic positive offset is consistent with the bias observed during model
 
 ![Histogram-scatter-boxplot](images/plot_consultancy_comparison.png){#fig-box-hist-scat}
 
-# 
+#
