@@ -19,6 +19,7 @@ geometry:
 editor: visual
 toc: true
 lof: true
+lot: true
 number-sections: true
 ---
 
@@ -44,26 +45,11 @@ Applied row-wise using a grouped transform, this produces RUL values ranging fro
 
 **Exploratory Data Analysis.** Variance was computed across all sensors and settings to identify informative features. Ten sensors and all three operational settings exhibited near-zero variance (\< 0.01), meaning their values remained essentially constant across the entire engine lifecycle and carry no predictive signal @fig-variance . The flat line behaviour of these sensors is illustrated in @fig-flat-sensors. These were flagged for removal. The remaining sensors were plotted against RUL for a sample of engines, confirming systematic monotonic trends: sensors such as `sensor_val19` and `sensor_val10` increase as RUL decreases, while `sensor_val2` and `sensor_val5` decrease Confirmed by plotting sensor values against RUL for sample of three engines @fig-sensor-trends-rul. Pearson correlation analysis confirmed these observations, with six sensors exceeding \|r\| = 0.5 with RUL @fig-pearson. A correlation heatmap further revealed substantial multicollinearity among retained sensors, notably `sensor_val1` and `sensor_val3` (r = 0.96) and `sensor_val2` and `sensor_val5` (r = 0.81), indicating redundancy in the raw feature set @fig-heatmap.
 
-**Feature Engineering.** Based on the EDA, the following decisions were made. All near-constant features were dropped: `set1`, `set2`, `set3`, `sensor_val7`, `sensor_val8`, `sensor_val9`, `sensor_val11`, `sensor_val13`, `sensor_val14`, `sensor_val16`, `sensor_val18`, and `sensor_val20`. The 12 retained sensors were kept as raw features. Additionally, 10-cycle rolling means and rolling standard deviations were computed per engine for each retained sensor. The rolling mean captures the local degradation trend rather than the noisy instantaneous reading, while the rolling std captures volatility, which can itself be a degradation signal. The `min_periods=1` argument ensures no missing values are introduced for the first cycles of each engine. The final feature set consists of 36 features: 12 raw sensors, 12 rolling means, and 12 rolling standard deviations.
+**Feature Engineering.** All 12 near-constant features identified in the variance analysis were dropped (Figures 1–2). The remaining 12 sensors were retained as raw features. Additionally, 10-cycle rolling means and standard deviations were computed per engine for each retained sensor: the rolling mean captures the local degradation trend rather than the noisy instantaneous reading, while the rolling std captures volatility as a secondary degradation signal. The final feature set consists of 36 features: 12 raw sensors, 12 rolling means, and 12 rolling standard deviations.
 
 ## Model Development
 
-**Model choice.** XGBoost (gradient boosted trees) was selected for its ability to handle non-linear relationships, robustness to multicollinearity between features, and strong out-of-the-box performance on tabular regression tasks without requiring feature scaling.
-
-**Data splitting.** The 100 training engines were split into 80 training engines and 20 held-out test engines (80/20). The split is performed at the engine level rather than the row level to prevent data leakage: rows from the same engine are temporally correlated, so a row-level split would allow the model to observe earlier cycles of an engine during training and later cycles of the same engine at test time. The 20 test engines were never seen during training and constitute a genuine out-of-sample evaluation. The model was configured as follows:
-
-| Hyperparameter | Value | Justification |
-|------------------------|------------------------|------------------------|
-| `n_estimators` | 400 | Sufficient rounds to converge at the chosen learning rate |
-| `max_depth` | 4 | Shallow trees reduce overfitting on a \~16,000-row training set |
-| `learning_rate` | 0.05 | Conservative step size paired with 400 estimators |
-| `subsample` | 0.8 | Row subsampling per tree; reduces variance between trees |
-| `colsample_bytree` | 0.8 | Feature subsampling; reduces correlation between trees |
-| `reg_alpha` | 0.1 | L1 regularisation; encourages sparsity |
-| `reg_lambda` | 2 | L2 regularisation; shrinks leaf weights against overfitting |
-| `min_child_weight` | 3 | Prevents splits on very small data subsets |
-
-: Hyperparameter Tuning
+**Data splitting.** The 100 training engines were split into 80 training engines and 20 held-out test engines (80/20). The split is performed at the engine level rather than the row level to prevent data leakage: rows from the same engine are temporally correlated, so a row-level split would allow the model to observe earlier cycles of an engine during training and later cycles of the same engine at test time. The 20 test engines were never seen during training and constitute a genuine out-of-sample evaluation. The model was configured with these parameters that can been seen in table 1
 
 The combination of row and feature subsampling implements stochastic gradient boosting, which is particularly beneficial given the multicollinearity in the feature set.
 
@@ -81,13 +67,9 @@ Across the 100 DataSchedule engines, predicted RUL values range from 8 to 219 cy
 
 ## Comparison with Consultancy Predictions
 
-The consultancy's predictions cover the same 100 DataSchedule engines, with a mean of **82.9 cycles** and a standard deviation of 48.4 cycles. Our model predicts on average **12.0 cycles higher**, with an MAE between the two prediction sets of **21.45 cycles**.
+The consultancy's predictions yield a mean of 82.9 cycles (std = 48.4), compared to our mean of 94.9 cycles, a difference of 12.0 cycles with an MAE of 21.45 cycles between the two sets. Both a Wilcoxon signed-rank test (stat = 1187.50, p \< 0.0001) and a paired t-test (stat = 4.43, p \< 0.0001) confirm this difference is statistically significant. The comparison plots @fig-box-hist-scat show broad agreement at low RUL values with divergence increasing at higher values, a right-skewed difference distribution centred at 12.0 cycles, and a wider interquartile range in our predictions reflecting greater individual spread.
 
-Two paired statistical tests were applied. The **Wilcoxon signed-rank test** (stat = 1187.50, p \< 0.0001) is the primary test, selected as a non-parametric method appropriate for RUL predictions which are strictly positive and right-skewed. The **paired t-test** (stat = 4.43, p \< 0.0001) is reported as a parametric complement. Both tests confirm that the difference between the two prediction sets is statistically significant and not attributable to random variation. The three comparison plots are shown in @fig-box-hist-scat
-
-The scatter plot of our predictions against the consultancy's shows broad agreement at low RUL values, with divergence increasing at higher values, consistent with our model's known overestimation tendency in that region. The histogram of pairwise differences is right-skewed with a mean of 12.0 cycles, indicating that when the two models disagree strongly, it is predominantly our model that predicts the higher value. The boxplot confirms that our model's predictions have a higher median and wider interquartile range than the consultancy's, reflecting greater spread across individual engine predictions.
-
-The systematic positive offset is consistent with the bias observed during model evaluation and is attributable to the underrepresentation of high-RUL observations in the training data. Practically, our higher RUL predictions push safety due dates further into the future, resulting in fewer engines falling within the 30-day planning horizon compared to the consultancy's more conservative estimates. The downstream impact of this difference on the maintenance schedule is examined in the Optimization Task.
+However, this result must be interpreted carefully. Our test RMSE of 45.85 cycles represents an inherent error range that comfortably exceeds the 12.0-cycle offset, meaning we cannot claim our predictions are closer to the true RUL values than the consultancy's. The statistically significant difference confirms the two sets are distinct, but the practical significance is better assessed through the downstream maintenance schedule, examined in the Optimization Task. The systematic positive offset is consistent with the high-RUL under representation bias identified during evaluation, and practically results in fewer engines falling within the 30-day planning horizon compared to the consultancy's more conservative estimates.
 
 # Optimization Task
 
@@ -159,7 +141,22 @@ The systematic positive offset is consistent with the bias observed during model
 
 -   Sources used
 
+\newpage
+
 # Appendix
+
+| Hyperparameter | Value | Justification |
+|------------------------|------------------------|------------------------|
+| `n_estimators` | 400 | Sufficient rounds to converge at the chosen learning rate |
+| `max_depth` | 4 | Shallow trees reduce overfitting on a \~16,000-row training set |
+| `learning_rate` | 0.05 | Conservative step size paired with 400 estimators |
+| `subsample` | 0.8 | Row subsampling per tree; reduces variance between trees |
+| `colsample_bytree` | 0.8 | Feature subsampling; reduces correlation between trees |
+| `reg_alpha` | 0.1 | L1 regularisation; encourages sparsity |
+| `reg_lambda` | 2 | L2 regularisation; shrinks leaf weights against overfitting |
+| `min_child_weight` | 3 | Prevents splits on very small data subsets |
+
+: Hyperparameter tuning
 
 ![variance Bar chart](images/plot1_variance.png){#fig-variance}
 
@@ -175,4 +172,4 @@ The systematic positive offset is consistent with the bias observed during model
 
 ![Histogram-scatter-boxplot](images/plot_consultancy_comparison.png){#fig-box-hist-scat}
 
-#
+# 
