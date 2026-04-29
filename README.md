@@ -32,4 +32,5 @@ Then run the notebook top to bottom.
 
 ## Group members
 
-Stefan, Rick, Tycho
+Stefan, Rick, Tycho, Garoé
+
