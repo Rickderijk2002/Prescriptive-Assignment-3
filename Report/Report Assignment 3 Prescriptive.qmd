@@ -83,7 +83,7 @@ However, this result must be interpreted carefully. Our test RMSE of 45.85 cycle
 
 ### Representation
 
--   Description of an individual
+Individuals in our implementation are represented using a list of tuples, where each tuple corresponds to a maintained engine and contains three elements: the ID of the engine, which maintenance team is assigned to it, and the day at which the maintenance starts. There is technically no upper limit to the number of tuples in the list, but a minimum of 1 is maintained during mutation to ensure an individual's schedule cannot become empty. This representation allows for flexible scheduling of any subset of engines across the 30-day planning horizon, while also encoding the necessary information for evaluating maintenance costs and constraints. It also inherently enforces the constraint that only one maintenance team can work on an engine at a time, as only one team id can be present in an engine's tuple.
 
 ### Selection Strategy
 
@@ -91,11 +91,17 @@ However, this result must be interpreted carefully. Our test RMSE of 45.85 cycle
 
 ### Crossover
 
--   Description of crossover method
+We make use of a custom crossover method designed to give a high probability that the schedules of the offspring are still valid schedules. After all, if we used a standard approach such as single-point crossover, there is a high chance that the insertion of an engine from parent B into schedule A would cause some form of conflict or overlap with the existing schedule, making at worst the entire schedule after the insertion invalid. Instead, our method has each child inherit half of each parent's schedule. This way, at least half of the schedule is guaranteed to be valid, and the other half is at the very least internally valid. The only remaining point in the schedule where a conflict could arise is at the point where the two halves are joined, but the repair function (see "Feasibility Handling") is designed to resolve any such conflicts. Before finishing the crossover, there is a check for any duplicate engines in the offspring's schedules. If there is, the later occurrence of the duplicate engine is removed from the schedule, ensuring that each engine is only maintained once.
 
 ### Mutation
 
--   Description of mutation method or justification
+For mutation, we implement a multi-stage mutation process that ensures every part of the schedule that can be mutated has a chance to be mutated. This way, we ensure that the search space is fully explored and reduce the chance of getting stuck in a local minimum. The implementation applies a chance to mutate on every chromosome (tuple) in the individual; to make sure we do not mutate individuals too much (which could result in losing otherwise good solutions), the base mutation probability is kept relatively low (0.3).
+The first stage, if activated, mutates the starting day of maintenance within a reasonable range (+/- 3 days). While we do want to vary the start dates, changing the dates by too much risks creating many overlaps and otherwise infeasible schedules. A range of 3 days in either direction gives a good balance of schedule flexibility and validity.
+Next, there is a chance to mutate which team maintains the engine. This very simply randomly selects one of the four available teams, and replaces the currently set team with whichever one is selected.
+Following that, there is also a chance to mutate the engine ID, which works similarly to the team mutation. In both cases, there is a chance to re-select the same team or engine (1/4 and 1/100 chance respectively). This is not a major issue, as the chances for this to happen are not very high (especially in the engine ID case). Additionally, if it should happen, then subsequent mutations either in the same round or in the next round of mutation will make up for it either way.
+The final mutation stage changes the individuals' chromosome length (amount of tuples). The standard probability (0.3) is used to decide to remove a chromosome, with a check in place to ensure
+this only happens if the individual has more than one chromosome to begin with. After that, the inverse probability (0.7) is used to decide whether to add a chromosome. If this happens, a new random tuple is added with the same random value ranges used during the initalization of individuals. The probability used here is higher, because we want to encourage scheduling as many
+engines as possible within the constraints as this should lead to the highest objective value; after all, non-maintained engines incurr a significant penalty.
 
 ### Feasibility Handling
 
@@ -172,4 +178,4 @@ However, this result must be interpreted carefully. Our test RMSE of 45.85 cycle
 
 ![Histogram-scatter-boxplot](images/plot_consultancy_comparison.png){#fig-box-hist-scat}
 
-# 
+#
