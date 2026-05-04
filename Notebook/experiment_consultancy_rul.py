@@ -1,6 +1,4 @@
-### TASK O: 30-RUN GA EXPERIMENT (CONSULTANCY RUL PREDICTIONS) ###
-# Standalone script — mirrors the notebook but runs only Task O.
-# Saves Results/task_O_convergence.png and Results/task_O_histories.npy.
+### 30-RUN GA EXPERIMENT (CONSULTANCY RUL PREDICTIONS) ###
 
 import os
 # Work from the script's own directory so all relative paths match the notebook
@@ -281,7 +279,7 @@ def run_ga(rul_input, seed=None):
         # Selection
         offspring = list(map(toolbox.clone, toolbox.select(pop, len(pop))))
 
-        # Crossover — repair both children immediately after
+        # Crossover (repair both children immediately after)
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
             if random.random() < CX_PROB:
                 toolbox.mate(child1, child2)
@@ -290,7 +288,7 @@ def run_ga(rul_input, seed=None):
                 del child1.fitness.values
                 del child2.fitness.values
 
-        # Mutation — repair the mutant immediately after
+        # Mutation (repair the mutant immediately after)
         for mutant in offspring:
             if random.random() < MUT_PROB:
                 toolbox.mutate(mutant)
@@ -315,7 +313,7 @@ def run_ga(rul_input, seed=None):
     print(f"\nDone — {gen} generations | Best penalty: {best_ind.fitness.values[0]:,.0f}")
     return best_ind, best_ind.fitness.values[0], history
 
-### TASK O: 30-RUN EXPERIMENT ###
+### 30-RUN EXPERIMENT ###
 
 # Load consultancy RUL predictions (semicolon-delimited: RUL, id)
 df_cons = pd.read_csv("../Data/RUL_consultancy_predictions_A3.csv", sep=";")
@@ -371,7 +369,7 @@ with open("Results/best_schedule_consultancy_rul.txt", "w", encoding="utf-8") as
     f.write("-" * len(header) + "\n")
     f.write(f"Total penalty cost: {total_penalty:,.0f}\n")
 
-print(f"Saved Results/task_O_best_schedule.txt (best cost: {overall_best_cost_cons:,.0f})")
+print(f"Saved Results (best cost: {overall_best_cost_cons:,.0f})")
 
 # Pad each history to the same length using its last value
 max_len_o = max(len(h) for h in all_histories_consultancy)
@@ -385,7 +383,7 @@ plt.figure(figsize=(10, 5))
 plt.plot(range(1, max_len_o + 1), avg_o)
 plt.xlabel("Generation")
 plt.ylabel("Average Best Penalty Cost")
-plt.title("Task O: 30-Run Average Best Fitness (Consultancy RUL Predictions)")
+plt.title("30-Run Average Best Fitness (Consultancy RUL Predictions)")
 plt.tight_layout()
 plt.savefig("Results/convergence_consultancy_rul.png")
 plt.show()

@@ -1,6 +1,4 @@
-### TASK N: 30-RUN GA EXPERIMENT (OWN RUL PREDICTIONS) ###
-# Standalone script — mirrors the notebook but runs only Task N.
-# Saves Results/task_N_convergence.png and Results/task_N_histories.npy.
+### 30-RUN GA EXPERIMENT (OWN RUL PREDICTIONS) ###
 
 import os
 # Work from the script's own directory so all relative paths match the notebook
@@ -281,7 +279,7 @@ def run_ga(rul_input, seed=None):
         # Selection
         offspring = list(map(toolbox.clone, toolbox.select(pop, len(pop))))
 
-        # Crossover — repair both children immediately after
+        # Crossover (repair both children immediately after)
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
             if random.random() < CX_PROB:
                 toolbox.mate(child1, child2)
@@ -290,7 +288,7 @@ def run_ga(rul_input, seed=None):
                 del child1.fitness.values
                 del child2.fitness.values
 
-        # Mutation — repair the mutant immediately after
+        # Mutation (repair the mutant immediately after)
         for mutant in offspring:
             if random.random() < MUT_PROB:
                 toolbox.mutate(mutant)
@@ -315,7 +313,7 @@ def run_ga(rul_input, seed=None):
     print(f"\nDone — {gen} generations | Best penalty: {best_ind.fitness.values[0]:,.0f}")
     return best_ind, best_ind.fitness.values[0], history
 
-### TASK N: 30-RUN EXPERIMENT ###
+### 30-RUN EXPERIMENT ###
 
 # Load own RUL predictions
 df_own = pd.read_csv("Results/RUL_predictions.csv")
@@ -371,7 +369,7 @@ with open("Results/best_schedule_own_rul.txt", "w", encoding="utf-8") as f:
     f.write("-" * len(header) + "\n")
     f.write(f"Total penalty cost: {total_penalty:,.0f}\n")
 
-print(f"Saved Results/task_N_best_schedule.txt (best cost: {overall_best_cost_own:,.0f})")
+print(f"Saved Results (best cost: {overall_best_cost_own:,.0f})")
 
 # Pad each history to the same length using its last value
 max_len_own = max(len(h) for h in all_histories_own)
@@ -385,7 +383,7 @@ plt.figure(figsize=(10, 5))
 plt.plot(range(1, max_len_own + 1), avg_fitness_own)
 plt.xlabel("Generation")
 plt.ylabel("Average Best Penalty Cost")
-plt.title("Task N: 30-Run Average Best Fitness (Own RUL Predictions)")
+plt.title("30-Run Average Best Fitness (Own RUL Predictions)")
 plt.tight_layout()
 plt.savefig("Results/convergence_own_rul.png.png")
 plt.show()

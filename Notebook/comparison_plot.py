@@ -1,6 +1,5 @@
-### COMPARISON PLOT: TASK N vs TASK O ###
-# Run this script after both run_task_N.py and run_task_O.py have completed.
-# Loads padded history arrays and saves Results/task_O_comparison.png.
+### COMPARISON PLOT ###
+# Run this script after both experiment.py files have finished running.
 
 import os
 # Work from the script's own directory so all relative paths match the notebook
@@ -17,7 +16,7 @@ padded_o = np.load("Results/histories_consultancy_rul.npy")
 avg_n = np.mean(padded_n, axis=0)
 avg_o = np.mean(padded_o, axis=0)
 
-# Comparison plot: Task N vs Task O average convergence
+# Comparison plot: average convergence
 plt.figure(figsize=(10, 5))
 plt.plot(range(1, len(avg_n) + 1), avg_n, label="Own Predictions")
 plt.plot(range(1, len(avg_o) + 1), avg_o, label="Consultancy Predictions")
